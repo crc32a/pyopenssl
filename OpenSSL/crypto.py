@@ -579,8 +579,19 @@ class X509Name(object):
             nid = _lib.OBJ_obj2nid(fname)
             name = _lib.OBJ_nid2sn(nid)
 
+            oid_buff = _ffi.new("char[]", 256)
+            oid_len = _lib.OBJ_obj2txt(oid_buff, 256, fname, 1)
+
+            #If the nid is unknown ie. The commonName is unknown
+            if nid == 0:
+                #Use the OID of the Name entry as the first tuple member
+                name_str = _ffi.string(oid_buff,oid_len)
+            else:
+                #Otherwise use the shortName you got from OBJ_nid2sn
+                name_str = _ffi.string(name)
+
             result.append((
-                    _ffi.string(name),
+                    name_str,
                     _ffi.string(
                         _lib.ASN1_STRING_data(fval),
                         _lib.ASN1_STRING_length(fval))))
